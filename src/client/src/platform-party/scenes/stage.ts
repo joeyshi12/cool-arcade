@@ -17,12 +17,17 @@ export enum TileType {
     PLATFORM
 }
 
-/**
- * Collision event with a given tile type and position in the direction normal to the tile surface
- */
 export interface CollisionEvent {
-    tile: TileType;
-    position: number;
+    tileType: TileType;
+    x?: number;
+    y?: number;
+}
+
+export interface CollisionEvents {
+    top?: CollisionEvent;
+    left?: CollisionEvent;
+    bottom?: CollisionEvent;
+    right?: CollisionEvent;
 }
 
 export class Stage {
@@ -31,6 +36,49 @@ export class Stage {
 
     public get mapData(): StageMap {
         return this._stageMap;
+    }
+
+    public getSprite(row: number, col: number): number {
+        return this._stageMap.spriteData[row * this._stageMap.columns + col];
+    }
+
+    public getCollisionEvents(metadata: EntityMetadata): CollisionEvents {
+        const events: CollisionEvents = {};
+
+        const [x, y] = this._getEntityOffsettedPosition(metadata);
+        const topRow = Math.floor((y + metadata.collisionBox.height / 2) / Renderer.SPRITE_LENGTH) - 1;
+        const leftCol = Math.floor((x + 1) / Renderer.SPRITE_LENGTH);
+        const rightCol = Math.floor((x + metadata.collisionBox.width - 1) / Renderer.SPRITE_LENGTH);
+
+        const topPos = (topRow + 1) * Renderer.SPRITE_LENGTH + 1;
+
+        const topLeftTileIdx = topRow * this.mapData.columns + leftCol;
+        const topRightTileIdx = topRow * this.mapData.columns + rightCol;
+
+        if ((this.mapData.solidIndices.has(topLeftTileIdx) || this.mapData.solidIndices.has(topRightTileIdx)) && y < topPos) {
+            events.top = {
+                tileType: TileType.SOLID,
+                y: topPos - metadata.collisionBox.offset.y
+            };
+        }
+
+        //const leftCol = Math.floor((x + entity.collisionBox.width / 2) / Renderer.SPRITE_LENGTH) - 1;
+        //const upperRow = Math.floor((y + 1) / Renderer.SPRITE_LENGTH);
+        //const lowerRow = Math.floor((y + entity.collisionBox.height - 1) / Renderer.SPRITE_LENGTH);
+
+        //const leftPos = (leftCol + 1) * Renderer.SPRITE_LENGTH + 1;
+
+        //const upperLeftTileIdx = upperRow * this.mapData.columns + leftCol;
+        //const lowerLeftTileIdx = lowerRow * this.mapData.columns + leftCol;
+        //if ((this.mapData.solidIndices.has(upperLeftTileIdx) || this.mapData.solidIndices.has(lowerLeftTileIdx))
+        //    && x <= leftPos) {
+        //    events.left = {
+        //        tileType: TileType.SOLID,
+        //        x: leftPos - metadata.collisionBox.offset.x
+        //    };
+        //}
+
+        return events;
     }
 
     public getCollisionEventAbove(entity: EntityMetadata): CollisionEvent | undefined {

@@ -4,13 +4,21 @@ import { Point } from "./gui";
 export abstract class Scene {
     protected constructor(protected game: Game) {}
 
-    public abstract mouseMoved(point: Point): void
+    public mouseClicked(point: Point): void {
+        // Do nothing by default
+    }
 
-    public abstract mouseClicked(point: Point): void
+    public mouseMoved(point: Point): void {
+        // Do nothing by default
+    }
 
-    public abstract keyPressed(event: KeyboardEvent): void
+    public keyPressed(event: KeyboardEvent): void {
+        // Do nothing by default
+    }
 
-    public abstract keyReleased(event: KeyboardEvent): void
+    public keyReleased(event: KeyboardEvent): void {
+        // Do nothing by default
+    }
 
     public abstract update(): void
 }
